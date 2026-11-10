@@ -55,3 +55,4 @@ def calculate_video_engagement(videos: List[Dict[str, Any]], sample_window: int 
     avg_rate = round(sum(rates) / len(rates), 2)
     avg_views = int(sum(views_list) / len(views_list))
     return avg_rate, avg_views, len(rates)
+

@@ -193,3 +193,4 @@ async def generate_message_for_creator(
             "simulated": latest_event.simulated if latest_event else True
         } if latest_event else None
     )
+

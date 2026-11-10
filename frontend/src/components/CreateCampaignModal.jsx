@@ -194,3 +194,4 @@ export default function CreateCampaignModal({ isOpen, onClose, onCreated }) {
     </Modal>
   );
 }
+

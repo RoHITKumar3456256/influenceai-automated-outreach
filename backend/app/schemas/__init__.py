@@ -16,3 +16,4 @@ __all__ = [
     "GenerateMessageRequest", "OutreachMessageResponse", "OutreachMessageUpdate",
     "OutreachEventCreate", "OutreachStatusUpdate", "OutreachTrackerItem"
 ]
+

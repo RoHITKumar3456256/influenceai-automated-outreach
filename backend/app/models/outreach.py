@@ -32,3 +32,4 @@ class OutreachEvent(Base):
     simulated = Column(Boolean, default=True, nullable=False)
 
     message = relationship("OutreachMessage", back_populates="events")
+

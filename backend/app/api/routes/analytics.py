@@ -76,3 +76,4 @@ def get_dashboard_analytics(db: Session = Depends(get_db)):
         "recent_activity": activity_log,
         "api_health": api_health
     }
+

@@ -51,3 +51,4 @@ export default function QualificationBadge({ status, reasons = [] }) {
     </div>
   );
 }
+

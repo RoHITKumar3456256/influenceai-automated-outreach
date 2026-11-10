@@ -206,3 +206,4 @@ Please revise and return valid JSON with email strictly 60-90 words and DM stric
     )
     fallback["safety_notes"] += " (Fell back from Gemini API)"
     return fallback
+

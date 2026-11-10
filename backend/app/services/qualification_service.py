@@ -39,3 +39,4 @@ def evaluate_influencer_qualification(
     else:
         reasons.append(f"Engagement rate ({engagement_rate:.2f}%) is below campaign threshold ({min_engagement:.2f}%).")
         return "Fail", reasons
+

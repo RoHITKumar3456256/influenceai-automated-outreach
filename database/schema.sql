@@ -78,3 +78,4 @@ CREATE INDEX IF NOT EXISTS idx_campaign_influencers_campaign ON campaign_influen
 CREATE INDEX IF NOT EXISTS idx_outreach_messages_ci ON outreach_messages(campaign_influencer_id);
 CREATE INDEX IF NOT EXISTS idx_outreach_events_message ON outreach_events(outreach_message_id);
 CREATE INDEX IF NOT EXISTS idx_outreach_events_status ON outreach_events(status);
+

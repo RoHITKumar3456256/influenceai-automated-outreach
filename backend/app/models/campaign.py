@@ -19,3 +19,4 @@ class Campaign(Base):
 
     # Relationships
     campaign_influencers = relationship("CampaignInfluencer", back_populates="campaign", cascade="all, delete-orphan")
+

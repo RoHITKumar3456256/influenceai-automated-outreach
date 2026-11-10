@@ -29,3 +29,4 @@ def get_db():
 def init_db():
     from app.models import campaign, influencer, outreach
     Base.metadata.create_all(bind=engine)
+

@@ -46,3 +46,4 @@ class CampaignInfluencer(Base):
     campaign = relationship("Campaign", back_populates="campaign_influencers")
     influencer = relationship("Influencer", back_populates="campaign_influencers")
     outreach_messages = relationship("OutreachMessage", back_populates="campaign_influencer", cascade="all, delete-orphan")
+

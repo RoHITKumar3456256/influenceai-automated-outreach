@@ -165,3 +165,4 @@ def test_api_workflow_end_to_end():
     csv_text = csv_res.text
     assert "Campaign Name,Creator Name,Platform" in csv_text
     assert "Simulated Sent" in csv_text
+
