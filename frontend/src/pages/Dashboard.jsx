@@ -12,7 +12,11 @@ import {
   Send,
   Download,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Check,
+  Sparkles,
+  ChevronRight,
+  ListOrdered
 } from 'lucide-react';
 import {
   BarChart,
@@ -34,10 +38,25 @@ import { formatDate } from '../utils/formatters';
 const PIE_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 const STATUS_BAR_COLOR = '#3b82f6';
 
+const DEMO_STEPS = [
+  { id: 1, title: 'Open Dashboard', path: '/', desc: 'Review high-level KPIs and qualification charts' },
+  { id: 2, title: 'Create Campaign', path: '/campaigns', desc: 'Define niche, follower bounds, and engagement benchmark' },
+  { id: 3, title: 'Discover Creators', path: '/discovery', desc: 'Query YouTube Data API with duplicate protection' },
+  { id: 4, title: 'Inspect Evidence', path: '/influencers', desc: 'Audit verified channel statistics and timestamps' },
+  { id: 5, title: 'Run Qualification', path: '/influencers', desc: 'Evaluate Pass/Fail/Review with explicit reasons' },
+  { id: 6, title: 'Generate AI Pitch', path: '/outreach-studio', desc: 'Enforce 60-90w Email & 15-30w DM constraints' },
+  { id: 7, title: 'Edit & Preview', path: '/outreach-studio', desc: 'Review live word counts and mobile/inbox mockups' },
+  { id: 8, title: 'Simulate Send', path: '/outreach-studio', desc: 'Record demo-safe simulated send event' },
+  { id: 9, title: 'Inspect Tracker', path: '/tracker', desc: 'Audit event history and update reply lifecycle' },
+  { id: 10, title: 'Export CSV', path: '/settings', desc: 'Download comprehensive research dataset' },
+];
+
 export default function Dashboard() {
   const { campaigns, activeCampaign, activeCampaignId } = useCampaigns();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDemoTour, setShowDemoTour] = useState(true);
+  const [completedSteps, setCompletedSteps] = useState([1]);
 
   useEffect(() => {
     async function loadData() {
@@ -45,6 +64,14 @@ export default function Dashboard() {
         setLoading(true);
         const data = await api.getDashboardAnalytics();
         setAnalytics(data);
+
+        // Auto-detect completed steps based on live data
+        const steps = [1];
+        if (data.campaign_count > 0) steps.push(2);
+        if (data.discovered_creators_count > 0) steps.push(3, 4, 5);
+        if (data.drafts_generated > 0) steps.push(6, 7);
+        if (Object.keys(data.outreach_status_distribution || {}).length > 0) steps.push(8, 9, 10);
+        setCompletedSteps(Array.from(new Set(steps)));
       } catch (err) {
         console.error('Failed to load dashboard data', err);
       } finally {
@@ -115,6 +142,58 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Guided 10-Step Evaluation Sequence Banner (Section 8 Checklist) */}
+      {showDemoTour && (
+        <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-5 shadow-md">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-blue-500/30 flex items-center justify-center text-blue-300">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold tracking-tight">Evaluation & Demonstration Sequence (Section 8)</h3>
+                <p className="text-[11px] text-blue-200">
+                  Follow this verified 10-step sequence to test the entire automated workflow end-to-end.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDemoTour(false)}
+              className="text-xs text-blue-300 hover:text-white px-2 py-1 rounded"
+            >
+              Dismiss
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2">
+            {DEMO_STEPS.map((s) => {
+              const isDone = completedSteps.includes(s.id);
+              return (
+                <Link
+                  key={s.id}
+                  to={s.path}
+                  className={`p-2.5 rounded-xl border text-xs transition-all ${
+                    isDone
+                      ? 'bg-blue-800/40 border-blue-500/50 text-white'
+                      : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-[10px] text-blue-300">STEP {s.id}</span>
+                    {isDone ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                    )}
+                  </div>
+                  <div className="font-semibold text-[11px] truncate">{s.title}</div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -337,4 +416,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

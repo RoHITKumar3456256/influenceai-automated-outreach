@@ -20,6 +20,16 @@ InfluenceAI automates the laborious multi-step workflow of creator marketing:
 
 ---
 
+## 📸 Application Screenshots & UI Previews
+
+### 1. Intelligence Dashboard & 10-Step Interactive Evaluation Tour
+![Dashboard Preview](screenshots/dashboard_preview.svg)
+
+### 2. AI Outreach Studio (Live Word Counters, Gmail Inbox & Mobile Instagram Mockups)
+![Outreach Studio Preview](screenshots/outreach_studio_preview.svg)
+
+---
+
 ## 2. Architecture & Workflow
 
 ```mermaid

@@ -16,7 +16,10 @@ import {
   Download,
   Calendar,
   Eye,
-  SendHorizontal
+  SendHorizontal,
+  CheckSquare,
+  Square,
+  Layers
 } from 'lucide-react';
 import { useCampaigns } from '../hooks/useCampaigns';
 import api from '../services/api';
@@ -36,6 +39,8 @@ export default function Influencers() {
   const [enriching, setEnriching] = useState(false);
   const [requalifying, setRequalifying] = useState(false);
   const [banner, setBanner] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [batchGenerating, setBatchGenerating] = useState(false);
   const navigate = useNavigate();
 
   const loadInfluencers = async () => {
@@ -47,6 +52,7 @@ export default function Influencers() {
         search: searchQuery.trim() || undefined,
       });
       setInfluencers(data);
+      setSelectedIds([]);
     } catch (err) {
       console.error('Failed to load influencers', err);
     } finally {
@@ -103,6 +109,53 @@ export default function Influencers() {
     navigate(`/outreach-studio?ci_id=${ciId}`);
   };
 
+  // Selection handlers
+  const handleToggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllQualified = () => {
+    const passedIds = influencers
+      .filter((item) => item.qualification_status === 'Pass')
+      .map((item) => item.id);
+    setSelectedIds(passedIds);
+  };
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.length === influencers.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(influencers.map((i) => i.id));
+    }
+  };
+
+  // Batch generate drafts
+  const handleBatchGenerate = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setBatchGenerating(true);
+      let successCount = 0;
+      for (const ciId of selectedIds) {
+        await api.generateOutreach(ciId, {
+          brand_name: 'InfluenceAI',
+          brand_product: activeCampaign ? activeCampaign.objective : 'creator collaboration',
+        });
+        successCount++;
+      }
+      setBanner({
+        type: 'success',
+        text: `Batch generation complete! Generated tailored AI drafts for ${successCount} creators.`,
+      });
+      loadInfluencers();
+    } catch (err) {
+      setBanner({ type: 'error', text: 'Batch generation encountered an issue.' });
+    } finally {
+      setBatchGenerating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title */}
@@ -154,38 +207,83 @@ export default function Influencers() {
         </div>
       )}
 
-      {/* Filters Bar */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search creator name or niche..."
-            className="w-full text-xs border border-slate-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-          />
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-        </form>
+      {/* Filters Bar & Batch Actions */}
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Search */}
+          <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search creator name or niche..."
+              className="w-full text-xs border border-slate-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+            />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+          </form>
 
-        {/* Status Pills */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-slate-500 font-medium mr-1 flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Filter:
-          </span>
-          {['all', 'Pass', 'Review', 'Fail'].map((status) => (
+          {/* Status Pills */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-slate-500 font-medium mr-1 flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5" /> Filter:
+            </span>
+            {['all', 'Pass', 'Review', 'Fail'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer ${
+                  statusFilter === status
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Batch Selection Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex items-center gap-2">
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer ${
-                statusFilter === status
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+              onClick={handleToggleSelectAll}
+              className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
             >
-              {status}
+              {selectedIds.length > 0 && selectedIds.length === influencers.length ? (
+                <CheckSquare className="w-4 h-4 text-blue-600" />
+              ) : (
+                <Square className="w-4 h-4 text-slate-400" />
+              )}
+              <span>{selectedIds.length === influencers.length ? 'Deselect All' : 'Select All'}</span>
             </button>
-          ))}
+
+            <button
+              onClick={handleSelectAllQualified}
+              className="text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer"
+            >
+              Select All Qualified (Pass)
+            </button>
+
+            {selectedIds.length > 0 && (
+              <span className="text-slate-500 font-medium ml-2">
+                Selected: <strong className="text-slate-800">{selectedIds.length}</strong> creators
+              </span>
+            )}
+          </div>
+
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleBatchGenerate}
+                disabled={batchGenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${batchGenerating ? 'animate-spin' : ''}`} />
+                <span>{batchGenerating ? 'Generating Drafts...' : `Batch Generate AI Pitches (${selectedIds.length})`}</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -215,6 +313,7 @@ export default function Influencers() {
             <table className="w-full text-left text-xs text-slate-600">
               <thead className="bg-slate-50/80 text-slate-500 uppercase font-semibold text-[11px] border-b border-slate-200">
                 <tr>
+                  <th className="w-8 px-4 py-3"></th>
                   <th className="px-4 py-3">Creator / Channel</th>
                   <th className="px-4 py-3">Followers</th>
                   <th className="px-4 py-3">Avg Views</th>
@@ -232,8 +331,25 @@ export default function Influencers() {
               <tbody className="divide-y divide-slate-100">
                 {influencers.map((item) => {
                   const inf = item.influencer;
+                  const isChecked = selectedIds.includes(item.id);
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr
+                      key={item.id}
+                      className={`transition-colors ${isChecked ? 'bg-blue-50/40' : 'hover:bg-slate-50/70'}`}
+                    >
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleToggleSelect(item.id)}
+                          className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {isChecked ? (
+                            <CheckSquare className="w-4 h-4 text-blue-600" />
+                          ) : (
+                            <Square className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
+
                       <td className="px-4 py-3">
                         <div className="font-semibold text-slate-900 flex items-center gap-2">
                           <span>{inf.name}</span>
@@ -418,4 +534,3 @@ export default function Influencers() {
     </div>
   );
 }
-
