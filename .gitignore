@@ -23,6 +23,8 @@ dist-ssr/
 data/exports/*.csv
 !data/exports/.gitkeep
 !data/exports/sample_verified_creators.csv
+!data/exports/outreach_tracker_export.csv
+!data/exports/outreach_messages_export.json
 
 # IDE & OS
 .vscode/
